@@ -3,6 +3,8 @@ import MovieCard from '../Card';
 import { useState, useEffect } from 'react';
 
 import './App.css';
+import Spinner from '../Spinner';
+import ErrorAlert from '../ErrorAlert/ErrorAlert';
 
 const options = {
     method: 'GET',
@@ -15,33 +17,63 @@ const options = {
 
 const App = () => {
     const [movies, setMovies] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isError, setIsError] = useState(false);
 
     useEffect(() => {
         fetch(
             'https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc',
             options
         )
-            .then((res) => res.json())
-            .then((res) => setMovies(res.results))
-            .catch((err) => console.error(err));
+            .then(
+                (res) => res.json(),
+                (err) => {
+                    setIsError(true);
+                    setIsLoading(false);
+                    console.log(err);
+                }
+            )
+            .then((res) => {
+                setMovies(res.results);
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                setIsError(true);
+                setIsLoading(false);
+                console.log(err);
+            });
     }, []);
 
     return (
         <div className="wrapper-app">
             <div className="space-align-container">
-                {console.log(movies)}
-
-                {movies.map((movie) => {
-                    return (
-                        <MovieCard
-                            key={movie.id}
-                            title={movie.title}
-                            date={movie.release_date}
-                            overview={movie.overview}
-                            poster={movie.poster_path}
-                        />
-                    );
-                })}
+                {isLoading ? (
+                    [1, 2, 3, 4, 5, 6, 7, 8, 9].map((e, i) => {
+                        return (
+                            <div
+                                key={i}
+                                className="space-align-block"
+                                style={{ width: 450, display: 'flex', justifyContent: 'center' }}
+                            >
+                                <Spinner />
+                            </div>
+                        );
+                    })
+                ) : isError ? (
+                    <ErrorAlert errMessage="Something went wrong😕" />
+                ) : (
+                    movies.map((movie) => {
+                        return (
+                            <MovieCard
+                                key={movie.id}
+                                title={movie.title}
+                                date={movie.release_date}
+                                overview={movie.overview}
+                                poster={movie.poster_path}
+                            />
+                        );
+                    })
+                )}
             </div>
         </div>
     );
