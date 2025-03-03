@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react';
 
 import './App.css';
 import Spinner from '../Spinner';
+import { Alert, Pagination } from 'antd';
 import ErrorAlert from '../ErrorAlert/ErrorAlert';
+import SearchForm from '../SearchForm';
+
+const URL_FIRST =
+    'https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc';
 
 const options = {
     method: 'GET',
@@ -19,12 +24,12 @@ const App = () => {
     const [movies, setMovies] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
+    const [url, setUrl] = useState(URL_FIRST);
+    const [paginationCount, setPaginationCount] = useState(20);
+    const [currentPaginationPage, setCurrentPaginationPage] = useState(1);
 
     useEffect(() => {
-        fetch(
-            'https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc',
-            options
-        )
+        fetch(url, options)
             .then(
                 (res) => res.json(),
                 (err) => {
@@ -35,6 +40,7 @@ const App = () => {
             )
             .then((res) => {
                 setMovies(res.results);
+                setPaginationCount(res.total_pages > 500 ? 5000 : res.total_pages);
                 setIsLoading(false);
             })
             .catch((err) => {
@@ -42,13 +48,18 @@ const App = () => {
                 setIsLoading(false);
                 console.log(err);
             });
-    }, []);
+    }, [url]);
+
+    const urlHandle = (urlQwery) => {
+        setUrl(urlQwery);
+    };
 
     return (
         <div className="wrapper-app">
+            <SearchForm urlHandler={urlHandle} mainUrl={URL_FIRST} />
             <div className="space-align-container">
                 {isLoading ? (
-                    [1, 2, 3, 4, 5, 6, 7, 8, 9].map((e, i) => {
+                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((e, i) => {
                         return (
                             <div
                                 key={i}
@@ -61,6 +72,8 @@ const App = () => {
                     })
                 ) : isError ? (
                     <ErrorAlert errMessage="Something went wrong😕" />
+                ) : movies.length == 0 ? (
+                    <Alert message="not found🧐" description="There was no movie with that name." type="warning" />
                 ) : (
                     movies.map((movie) => {
                         return (
@@ -74,6 +87,11 @@ const App = () => {
                         );
                     })
                 )}
+                <Pagination
+                    defaultCurrent={currentPaginationPage}
+                    total={paginationCount}
+                    // onChange={}
+                />
             </div>
         </div>
     );
