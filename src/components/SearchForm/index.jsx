@@ -4,7 +4,7 @@ import { debounce } from 'lodash';
 
 import './SearchForm.css';
 
-const SearchForm = ({ urlHandler, mainUrl }) => {
+const SearchForm = ({ urlHandler, mainUrl, pageCount, setIsSerching }) => {
     const [inputValue, setInputValue] = useState('');
     const debouncedUrlHandler = useRef(null);
 
@@ -12,6 +12,7 @@ const SearchForm = ({ urlHandler, mainUrl }) => {
         debouncedUrlHandler.current = debounce((value) => {
             if (value === '') {
                 urlHandler(mainUrl);
+                setIsSerching(false);
                 return;
             }
             urlHandler(`https://api.themoviedb.org/3/search/movie?query=${value}`);
@@ -22,6 +23,7 @@ const SearchForm = ({ urlHandler, mainUrl }) => {
 
     const handleInputChange = (e) => {
         const newValue = e.target.value;
+        setIsSerching(true);
         setInputValue(newValue);
         debouncedUrlHandler.current(newValue);
     };

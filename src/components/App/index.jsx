@@ -8,9 +8,6 @@ import { Alert, Pagination } from 'antd';
 import ErrorAlert from '../ErrorAlert/ErrorAlert';
 import SearchForm from '../SearchForm';
 
-const URL_FIRST =
-    'https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc';
-
 const options = {
     method: 'GET',
     headers: {
@@ -21,14 +18,36 @@ const options = {
 };
 
 const App = () => {
+    const [isSerching, setIsSerching] = useState(false);
     const [movies, setMovies] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
-    const [url, setUrl] = useState(URL_FIRST);
-    const [paginationCount, setPaginationCount] = useState(20);
+
     const [currentPaginationPage, setCurrentPaginationPage] = useState(1);
 
+    const URL_FIRST = `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=${currentPaginationPage}&sort_by=popularity.desc`;
+    const mainUrlRest =
+        '/discover/movie?include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc';
+
+    const generateUrl = (url, page) => {
+        const baseUrl = isSerching ? '' : 'https://api.themoviedb.org/3';
+        const resUrl = `${baseUrl}${url}&page=${page}`;
+        return resUrl;
+    };
+
+    const [url, setUrl] = useState(generateUrl(mainUrlRest, currentPaginationPage));
+
+    const [paginationCount, setPaginationCount] = useState(20);
+
     useEffect(() => {
+        const currStateUrl = isSerching ? url : mainUrlRest;
+
+        const newUrl = generateUrl(currStateUrl, currentPaginationPage);
+        setUrl(newUrl);
+    }, [currentPaginationPage]);
+
+    useEffect(() => {
+        setIsLoading(true);
         fetch(url, options)
             .then(
                 (res) => res.json(),
@@ -40,8 +59,9 @@ const App = () => {
             )
             .then((res) => {
                 setMovies(res.results);
-                setPaginationCount(res.total_pages > 500 ? 5000 : res.total_pages);
                 setIsLoading(false);
+
+                setPaginationCount(res.total_pages > 500 ? 5000 : res.total_pages * 10);
             })
             .catch((err) => {
                 setIsError(true);
@@ -50,13 +70,26 @@ const App = () => {
             });
     }, [url]);
 
+    const paginationnHandler = (page) => {
+        setCurrentPaginationPage(page);
+        console.log('changed');
+        console.log(currentPaginationPage);
+    };
+
     const urlHandle = (urlQwery) => {
+        setCurrentPaginationPage(1);
         setUrl(urlQwery);
     };
 
     return (
         <div className="wrapper-app">
-            <SearchForm urlHandler={urlHandle} mainUrl={URL_FIRST} />
+            <SearchForm
+                urlHandler={urlHandle}
+                mainUrl={URL_FIRST}
+                pageCount={currentPaginationPage}
+                setIsSerching={setIsSerching}
+            />
+
             <div className="space-align-container">
                 {isLoading ? (
                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((e, i) => {
@@ -64,7 +97,7 @@ const App = () => {
                             <div
                                 key={i}
                                 className="space-align-block"
-                                style={{ width: 450, display: 'flex', justifyContent: 'center' }}
+                                style={{ minWidth: 450, display: 'flex', justifyContent: 'center' }}
                             >
                                 <Spinner />
                             </div>
@@ -88,9 +121,11 @@ const App = () => {
                     })
                 )}
                 <Pagination
-                    defaultCurrent={currentPaginationPage}
+                    defaultCurrent={1}
+                    current={currentPaginationPage}
                     total={paginationCount}
-                    // onChange={}
+                    onChange={(page) => paginationnHandler(page)}
+                    showSizeChanger={false}
                 />
             </div>
         </div>
