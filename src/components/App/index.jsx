@@ -1,12 +1,18 @@
-import MovieCard from '../Card';
-
 import { useState, useEffect } from 'react';
 
 import './App.css';
-import Spinner from '../Spinner';
-import { Alert, Pagination } from 'antd';
+
+import Sceleton from '../Sceleton';
+import { Alert, Pagination, Tabs } from 'antd';
+
 import ErrorAlert from '../ErrorAlert/ErrorAlert';
 import SearchForm from '../SearchForm';
+import MovieCard from '../Card';
+
+import moviesapiGuestSession from '../../sevices/moviesapi-session';
+import moviesapiGenre from '../../sevices/moviesapi-genre';
+import { setMoviesapiRating } from '../../sevices/moviesapi-rating';
+import moviesapiGetRating from '../../sevices/moviesapi-get-rating';
 
 const options = {
     method: 'GET',
@@ -18,6 +24,14 @@ const options = {
 };
 
 const App = () => {
+    const [totalRatedPages, setTotalRatedPages] = useState(1);
+
+    const [currTab, setCurrTab] = useState(1);
+
+    const [ratingResults, setRatingResults] = useState({});
+
+    const [genresList, setGenresList] = useState({});
+
     const [isSerching, setIsSerching] = useState(false);
     const [movies, setMovies] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +54,12 @@ const App = () => {
     const [paginationCount, setPaginationCount] = useState(20);
 
     useEffect(() => {
+        moviesapiGenre().then((res) => {
+            setGenresList(res);
+        });
+    }, [url]);
+
+    useEffect(() => {
         const currStateUrl = isSerching ? url : mainUrlRest;
 
         const newUrl = generateUrl(currStateUrl, currentPaginationPage);
@@ -47,6 +67,15 @@ const App = () => {
     }, [currentPaginationPage]);
 
     useEffect(() => {
+        moviesapiGetRating().then((res) => {
+            // console.log(res.results, 'res.results');
+
+            setRatingResults(res.results);
+            setTotalRatedPages(res.total_pages);
+            console.log(res);
+            console.log(res.total_pages, 'total_pages');
+        });
+
         setIsLoading(true);
         fetch(url, options)
             .then(
@@ -61,14 +90,19 @@ const App = () => {
                 setMovies(res.results);
                 setIsLoading(false);
 
-                setPaginationCount(res.total_pages > 500 ? 5000 : res.total_pages * 10);
+                if (currTab === 1) {
+                    setPaginationCount(res.total_pages > 500 ? 5000 : res.total_pages * 10);
+                }
+                if (currTab === 2) {
+                    setPaginationCount(totalRatedPages > 500 ? 5000 : totalRatedPages * 10);
+                }
             })
             .catch((err) => {
                 setIsError(true);
                 setIsLoading(false);
                 console.log(err);
             });
-    }, [url]);
+    }, [url, currTab]);
 
     const paginationnHandler = (page) => {
         setCurrentPaginationPage(page);
@@ -76,58 +110,117 @@ const App = () => {
         console.log(currentPaginationPage);
     };
 
+    const onChangeRating = (curId, setState) => {
+        if (Array.isArray(ratingResults)) {
+            ratingResults.map((obj) => {
+                if (obj.id === curId) {
+                    // console.log('yes', obj.rating);
+                    setState(obj.rating);
+                    return obj.rating;
+                }
+            });
+        }
+    };
+
     const urlHandle = (urlQwery) => {
         setCurrentPaginationPage(1);
         setUrl(urlQwery);
     };
 
+    const onChangeTabs = (key) => {
+        console.log(key, 'keykeykeykeykeykeykey');
+        setCurrTab(+key);
+    };
+
+    const getGenres = (idsArr) => {
+        let allGenres = [];
+        idsArr.map((id) => {
+            const filtredGenres = genresList.genres.filter((genre) => {
+                return genre.id == id;
+            });
+            allGenres.push(...filtredGenres);
+        });
+
+        return allGenres;
+    };
+
+    const RenderApp = ({ moviesArr = [] }) => {
+        // console.log(moviesArr, 'moviesArrmoviesArr');
+        // setMoviesapiRating(950396, '8.5').then((res) => console.log(res));
+
+        return (
+            <>
+                {currTab === 1 ? (
+                    <SearchForm
+                        urlHandler={urlHandle}
+                        mainUrl={URL_FIRST}
+                        pageCount={currentPaginationPage}
+                        setIsSerching={setIsSerching}
+                    />
+                ) : null}
+
+                <div className="space-align-container">
+                    {console.log(totalRatedPages, '=====')}
+                    {isLoading ? (
+                        [...'амбаюднаскибидидапда'].map((e, i) => {
+                            return <Sceleton key={i} />;
+                        })
+                    ) : isError ? (
+                        <ErrorAlert errMessage="Something went wrong😕" />
+                    ) : moviesArr.length == 0 ? (
+                        <Alert message="not found🧐" description="There was no movie with that name." type="warning" />
+                    ) : (
+                        moviesArr.map((movie) => {
+                            return (
+                                <MovieCard
+                                    key={movie.id}
+                                    movieId={movie.id}
+                                    isLoading={isLoading}
+                                    title={movie.title}
+                                    date={movie.release_date}
+                                    overview={movie.overview}
+                                    poster={movie.poster_path}
+                                    genreIds={movie.genre_ids}
+                                    getGenresByIds={getGenres}
+                                    rating={movie.vote_average}
+                                    ratingArr={ratingResults}
+                                    onChangeRating={onChangeRating}
+                                />
+                            );
+                        })
+                    )}
+                </div>
+            </>
+        );
+    };
+
+    moviesapiGuestSession().then((res) => {
+        console.log(res);
+    });
+
+    const tabItems = [
+        {
+            key: '1',
+            label: 'Search',
+            children: <RenderApp moviesArr={movies} />,
+        },
+        {
+            key: '2',
+            label: 'Rated',
+            children: <RenderApp moviesArr={ratingResults} />,
+        },
+    ];
+
     return (
         <div className="wrapper-app">
-            <SearchForm
-                urlHandler={urlHandle}
-                mainUrl={URL_FIRST}
-                pageCount={currentPaginationPage}
-                setIsSerching={setIsSerching}
+            <Tabs destroyInactiveTabPane defaultActiveKey="1" items={tabItems} onChange={onChangeTabs} centered />
+            <Pagination
+                defaultCurrent={1}
+                current={currentPaginationPage}
+                total={paginationCount}
+                onChange={(page) => paginationnHandler(page)}
+                showSizeChanger={false}
             />
-
-            <div className="space-align-container">
-                {isLoading ? (
-                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((e, i) => {
-                        return (
-                            <div
-                                key={i}
-                                className="space-align-block"
-                                style={{ minWidth: 450, display: 'flex', justifyContent: 'center' }}
-                            >
-                                <Spinner />
-                            </div>
-                        );
-                    })
-                ) : isError ? (
-                    <ErrorAlert errMessage="Something went wrong😕" />
-                ) : movies.length == 0 ? (
-                    <Alert message="not found🧐" description="There was no movie with that name." type="warning" />
-                ) : (
-                    movies.map((movie) => {
-                        return (
-                            <MovieCard
-                                key={movie.id}
-                                title={movie.title}
-                                date={movie.release_date}
-                                overview={movie.overview}
-                                poster={movie.poster_path}
-                            />
-                        );
-                    })
-                )}
-                <Pagination
-                    defaultCurrent={1}
-                    current={currentPaginationPage}
-                    total={paginationCount}
-                    onChange={(page) => paginationnHandler(page)}
-                    showSizeChanger={false}
-                />
-            </div>
         </div>
     );
 };

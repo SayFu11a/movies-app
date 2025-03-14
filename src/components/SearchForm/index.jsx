@@ -16,8 +16,8 @@ const SearchForm = ({ urlHandler, mainUrl, pageCount, setIsSerching }) => {
                 return;
             }
             urlHandler(`https://api.themoviedb.org/3/search/movie?query=${value}`);
-            console.log(value);
-            console.log(value === '');
+            // console.log(value);
+            // console.log(value === '');
         }, 1000);
     }
 
