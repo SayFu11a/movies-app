@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import './App.css';
 
@@ -39,6 +39,8 @@ const App = () => {
 
     const [currentPaginationPage, setCurrentPaginationPage] = useState(1);
 
+    const [searchQuery, setSearchQuery] = useState(''); // Новое состояние для хранения запроса
+
     const URL_FIRST = `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=${currentPaginationPage}&sort_by=popularity.desc`;
     const mainUrlRest =
         '/discover/movie?include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc';
@@ -61,7 +63,6 @@ const App = () => {
 
     useEffect(() => {
         const currStateUrl = isSerching ? url : mainUrlRest;
-
         const newUrl = generateUrl(currStateUrl, currentPaginationPage);
         setUrl(newUrl);
     }, [currentPaginationPage]);
@@ -122,10 +123,10 @@ const App = () => {
         }
     };
 
-    const urlHandle = (urlQwery) => {
+    const urlHandle = useCallback((urlQuery) => {
         setCurrentPaginationPage(1);
-        setUrl(urlQwery);
-    };
+        setUrl(urlQuery);
+    }, []);
 
     const onChangeTabs = (key) => {
         console.log(key, 'keykeykeykeykeykeykey');
@@ -150,15 +151,6 @@ const App = () => {
 
         return (
             <>
-                {currTab === 1 ? (
-                    <SearchForm
-                        urlHandler={urlHandle}
-                        mainUrl={URL_FIRST}
-                        pageCount={currentPaginationPage}
-                        setIsSerching={setIsSerching}
-                    />
-                ) : null}
-
                 <div className="space-align-container">
                     {console.log(totalRatedPages, '=====')}
                     {isLoading ? (
@@ -202,7 +194,19 @@ const App = () => {
         {
             key: '1',
             label: 'Search',
-            children: <RenderApp moviesArr={movies} />,
+            children: (
+                <>
+                    <SearchForm
+                        urlHandler={urlHandle}
+                        mainUrl={URL_FIRST}
+                        pageCount={currentPaginationPage}
+                        setIsSerching={setIsSerching}
+                        searchQuery={searchQuery} // Передаем значение
+                        setSearchQuery={setSearchQuery} // Передаем функцию обновления
+                    />
+                    <RenderApp moviesArr={movies} />
+                </>
+            ),
         },
         {
             key: '2',
@@ -214,6 +218,7 @@ const App = () => {
     return (
         <div className="wrapper-app">
             <Tabs destroyInactiveTabPane defaultActiveKey="1" items={tabItems} onChange={onChangeTabs} centered />
+
             <Pagination
                 defaultCurrent={1}
                 current={currentPaginationPage}
