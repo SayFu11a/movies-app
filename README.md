@@ -1,8 +1,17 @@
-# React + Vite
+eslint
+eslint-config-airbnb
+eslint-config-prettier
+eslint-plugin-import
+eslint-plugin-jsx-a11y
+eslint-plugin-react
+eslint-plugin-react-hooks
+babel-eslint
+prettier
+husky
+lint-staged
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+###
 
-Currently, two official plugins are available:
+npm install --save-dev eslint-config-prettier
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+npm info "eslint-config-airbnb@latest" peerDependencies
