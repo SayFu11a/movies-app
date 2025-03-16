@@ -46,3 +46,7 @@ h2 {
     min-width: 30px;
     min-height: 30px;
 }
+
+:where(.css-dev-only-do-not-override-240cud).ant-card .ant-card-body {
+    padding: 0;
+}
