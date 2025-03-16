@@ -50,3 +50,7 @@ h2 {
 :where(.css-dev-only-do-not-override-240cud).ant-card .ant-card-body {
     padding: 0;
 }
+
+:where(.css-240cud).ant-card .ant-card-body {
+    padding: 0;
+}
