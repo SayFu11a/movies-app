@@ -1,47 +1,36 @@
-module.exports = {
-    env: {
-        browser: true,
-        es2021: true,
-        jest: true,
-    },
-    ignorePatterns: ['node_modules', 'dist', 'build'],
-    extends: ['airbnb', 'airbnb/hooks', 'plugin:react/jsx-runtime', 'prettier'],
-    parserOptions: {
-        ecmaFeatures: {
-            jsx: true,
-        },
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-    },
-    plugins: ['react', 'jsx-a11y', 'import', 'react-hooks', 'prettier'],
-    rules: {
-        'react/state-in-constructor': 0,
-        'jsx-a11y/label-has-associated-control': 0,
-        'react/react-in-jsx-scope': 'off',
-        'react/prop-types': 0,
-        'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
-        indent: ['error', 2, { SwitchCase: 1 }],
-        'prettier/prettier': 'error',
-        'linebreak-style': [0, 'unix'],
-        quotes: ['error', 'single'],
-        'import/no-unresolved': [2, { caseSensitive: false }],
-        'import/order': [
-            'error',
-            {
-                groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-                'newlines-between': 'always',
-            },
-        ],
-    },
-    settings: {
-        react: {
-            version: 'detect',
-        },
-        'import/resolver': {
-            node: {
-                extensions: ['.js', '.jsx'],
-                moduleDirectory: ['node_modules', 'src/'],
+import js from '@eslint/js';
+import globals from 'globals';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+
+export default [
+    { ignores: ['dist'] },
+    {
+        files: ['**/*.{js,jsx}'],
+        languageOptions: {
+            ecmaVersion: 2020,
+            globals: globals.browser,
+            parserOptions: {
+                ecmaVersion: 'latest',
+                ecmaFeatures: { jsx: true },
+                sourceType: 'module',
             },
         },
+        settings: { react: { version: '18.3' } },
+        plugins: {
+            react,
+            'react-hooks': reactHooks,
+            'react-refresh': reactRefresh,
+        },
+        rules: {
+            ...js.configs.recommended.rules,
+            ...react.configs.recommended.rules,
+            ...react.configs['jsx-runtime'].rules,
+            ...reactHooks.configs.recommended.rules,
+            'react/jsx-no-target-blank': 'off',
+            'react/prop-types': 'off', // Добавьте эту строку для отключения проверки prop-types
+            'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+        },
     },
-};
+];

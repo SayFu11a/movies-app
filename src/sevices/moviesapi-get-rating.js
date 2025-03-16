@@ -23,7 +23,7 @@ async function moviesapiGetRating() {
         const data = res.json();
         return data;
     } catch (error) {
-        console.error(error);
+        console.error(error, 'ключа гостевой сессии еще нету, поставте рейтинг фильму чтобы он появился.');
     }
 }
 export default moviesapiGetRating;

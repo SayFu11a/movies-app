@@ -1,6 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
-import moviesapiGetRating from '../../sevices/moviesapi-get-rating';
 import { setMoviesapiRating } from '../../sevices/moviesapi-rating';
 
 import './Card.css';
@@ -9,25 +8,11 @@ import { Card, Space, Typography, Rate } from 'antd';
 
 const { Text } = Typography;
 
-const MovieCard = ({
-    movieId,
-    title,
-    date,
-    overview,
-    poster,
-    rating,
-    getGenresByIds,
-    genreIds,
-    ratingArr,
-    onChangeRating,
-}) => {
+const MovieCard = ({ movieId, title, date, overview, poster, rating, getGenresByIds, genreIds, ratingArr }) => {
     const currRatig = () => {
         if (Array.isArray(ratingArr)) {
             for (const obj of ratingArr) {
                 if (obj.id === movieId) {
-                    // setRatingNuber(obj.rating);
-                    // console.log('yes---', obj.rating);
-
                     return obj.rating;
                 }
             }
@@ -55,8 +40,6 @@ const MovieCard = ({
         setRatingNuber(e);
         setMoviesapiRating(movieId, e);
     };
-
-    // console.log(ratingNuber, 'ratingNuber-=-=-=-=-=');
 
     const getRatingColor = () => {
         switch (true) {

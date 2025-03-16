@@ -11,7 +11,6 @@ import MovieCard from '../Card';
 
 import moviesapiGuestSession from '../../sevices/moviesapi-session';
 import moviesapiGenre from '../../sevices/moviesapi-genre';
-import { setMoviesapiRating } from '../../sevices/moviesapi-rating';
 import moviesapiGetRating from '../../sevices/moviesapi-get-rating';
 
 const options = {
@@ -41,6 +40,12 @@ const App = () => {
 
     const [searchQuery, setSearchQuery] = useState(''); // Новое состояние для хранения запроса
 
+    useEffect(() => {
+        moviesapiGuestSession()
+            .then(() => console.log('Guest session is working...'))
+            .catch((err) => console.error('Failed to initialize session:', err));
+    }, []);
+
     const URL_FIRST = `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=${currentPaginationPage}&sort_by=popularity.desc`;
     const mainUrlRest =
         '/discover/movie?include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc';
@@ -69,12 +74,8 @@ const App = () => {
 
     useEffect(() => {
         moviesapiGetRating().then((res) => {
-            // console.log(res.results, 'res.results');
-
             setRatingResults(res.results);
             setTotalRatedPages(res.total_pages);
-            console.log(res);
-            console.log(res.total_pages, 'total_pages');
         });
 
         setIsLoading(true);
@@ -107,15 +108,12 @@ const App = () => {
 
     const paginationnHandler = (page) => {
         setCurrentPaginationPage(page);
-        console.log('changed');
-        console.log(currentPaginationPage);
     };
 
     const onChangeRating = (curId, setState) => {
         if (Array.isArray(ratingResults)) {
             ratingResults.map((obj) => {
                 if (obj.id === curId) {
-                    // console.log('yes', obj.rating);
                     setState(obj.rating);
                     return obj.rating;
                 }
@@ -129,7 +127,6 @@ const App = () => {
     }, []);
 
     const onChangeTabs = (key) => {
-        console.log(key, 'keykeykeykeykeykeykey');
         setCurrTab(+key);
     };
 
@@ -146,13 +143,9 @@ const App = () => {
     };
 
     const RenderApp = ({ moviesArr = [] }) => {
-        // console.log(moviesArr, 'moviesArrmoviesArr');
-        // setMoviesapiRating(950396, '8.5').then((res) => console.log(res));
-
         return (
             <>
                 <div className="space-align-container">
-                    {console.log(totalRatedPages, '=====')}
                     {isLoading ? (
                         [...'амбаюднаскибидидапда'].map((e, i) => {
                             return <Sceleton key={i} />;
@@ -186,9 +179,7 @@ const App = () => {
         );
     };
 
-    moviesapiGuestSession().then((res) => {
-        console.log(res);
-    });
+    // moviesapiGuestSession();
 
     const tabItems = [
         {
